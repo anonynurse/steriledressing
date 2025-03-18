@@ -139,9 +139,9 @@ hand hygiene
         		const utterance = new SpeechSynthesisUtterance(textToRead);
         		speechSynthesis.speak(utterance);
       		}
-		document.getElementById("textArea").scrollTop = document.getElementById("textArea").scrollHeight;
-                index++;
+		document.getElementById("textArea").scrollTop = document.getElementById("textArea").scrollHeight;    
             }
+	    index++;
         });
         document.getElementById("scorebtn").addEventListener("click", function() {
             document.getElementById("score").value = parseInt(document.getElementById("score").value) + 1;
