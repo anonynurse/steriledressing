@@ -132,10 +132,10 @@ hand hygiene
 		lines = document.getElementById("textArea").value.split("\n");
 		document.getElementById("textArea").value = "";
             }
-            if (index < lines.length && index != 0) {
-                document.getElementById("textArea").value += lines[index] + "\n";
+            if (index <= lines.length && index != 0) {
+                document.getElementById("textArea").value += lines[index-1] + "\n";
       		if (soundCheckbox.checked) {
-        		const textToRead = lines[index];
+        		const textToRead = lines[index-1];
         		const utterance = new SpeechSynthesisUtterance(textToRead);
         		speechSynthesis.speak(utterance);
       		}
