@@ -163,6 +163,7 @@ leave to document: wound, dressing
                 return;
             }
             document.getElementById("textArea").value += lines[index] + "\n";
+	    document.getElementById("textArea").scrollTop = document.getElementById("textArea").scrollHeight;
             if (soundCheckbox.checked) {
                 const textToRead = lines[index];
                 const utterance = new SpeechSynthesisUtterance(textToRead);
