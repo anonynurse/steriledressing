@@ -1,23 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sterile Dressing</title>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; padding: 16px; }
-    #page { margin: auto; width: 100%; max-width: 900px; }
-    .row { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
-    .col { display: flex; align-items: center; gap: 8px; }
-    button { padding: 10px 14px; border: 1px solid #ccc; border-radius: 8px; background: #f6f6f6; cursor: pointer; }
-    button:hover { background: #eee; }
-    textarea { width: 100%; height: 60vh; font-size: 10pt; }
-    input[type="text"] { width: 6ch; text-align: center; }
-    .panel { border: 1px solid #e5e5e5; border-radius: 12px; padding: 12px; background: #fafafa; }
-    label { font-size: 0.95rem; }
-    select, input[type="range"] { width: 100%; max-width: 320px; }
-    .slider-row { display: grid; grid-template-columns: 120px 1fr 60px; gap: 10px; align-items: center; }
-    .small { font-size: 12px; color: #666; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin:0; padding:16px; }
+    #page { margin:auto; width:100%; max-width:900px; }
+    .row { display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    .col { display:flex; align-items:center; gap:8px; }
+    button { padding:10px 14px; border:1px solid #ccc; border-radius:8px; background:#f6f6f6; cursor:pointer; }
+    button:hover { background:#eee; }
+    textarea { width:100%; height:60vh; font-size:10pt; }
+    input[type="text"] { width:6ch; text-align:center; }
   </style>
 </head>
 <body>
@@ -37,42 +32,8 @@
         <input id="score" type="text" value="0" read-only>
       </div>
       <div class="col">
-        <input type="checkbox" id="soundCheckbox">
+        <input type="checkbox" id="soundCheckbox" checked>
         <label for="soundCheckbox">sound</label>
-      </div>
-    </div>
-
-    <div class="panel" style="margin-bottom:12px;">
-      <div class="row" style="gap:16px;">
-        <div class="col" style="flex:1; min-width:240px;">
-          <label for="voiceSelect">Voice</label>
-          <select id="voiceSelect"></select>
-        </div>
-        <div class="col" style="flex:1; min-width:240px;">
-          <button id="testVoice">Test voice</button>
-          <span class="small" id="voiceHint"></span>
-        </div>
-      </div>
-
-      <div style="margin-top:10px; display:grid; gap:6px;">
-        <div class="slider-row">
-          <label for="rateRange">Rate</label>
-          <input id="rateRange" type="range" min="0.5" max="1.5" step="0.05">
-          <span id="rateVal"></span>
-        </div>
-        <div class="slider-row">
-          <label for="pitchRange">Pitch</label>
-          <input id="pitchRange" type="range" min="0.5" max="2" step="0.05">
-          <span id="pitchVal"></span>
-        </div>
-        <div class="slider-row">
-          <label for="volumeRange">Volume</label>
-          <input id="volumeRange" type="range" min="0" max="1" step="0.05">
-          <span id="volumeVal"></span>
-        </div>
-      </div>
-      <div class="small" style="margin-top:6px;">
-        Tip: Chrome/Edge often expose “Google” or “Microsoft Natural” voices (neural, higher quality). Safari uses system voices (e.g., Siri).
       </div>
     </div>
 
@@ -173,147 +134,41 @@ leave to document: wound, dressing
   </div>
 
   <script>
-    // --- State ---
     let lines = [];
     let index = 0;
     let playing = false;
-    let voices = [];
-    const femaleNameHints = ["Female","Samantha","Victoria","Allison","Jenny","Aria","Sofia","Zira","Olivia","Amelia","Neural"];
-    const preferredVendors = ["Google", "Microsoft", "Siri", "Apple"];
+    let targetVoice = null;
 
-    // --- Elements ---
     const playBtn = document.getElementById("play");
     const stepBtn = document.getElementById("step");
     const scoreBtn = document.getElementById("scorebtn");
     const scoreInput = document.getElementById("score");
     const textArea = document.getElementById("textArea");
     const soundCheckbox = document.getElementById("soundCheckbox");
-    const voiceSelect = document.getElementById("voiceSelect");
-    const testVoiceBtn = document.getElementById("testVoice");
-    const voiceHint = document.getElementById("voiceHint");
 
-    const rateRange = document.getElementById("rateRange");
-    const pitchRange = document.getElementById("pitchRange");
-    const volumeRange = document.getElementById("volumeRange");
-    const rateVal = document.getElementById("rateVal");
-    const pitchVal = document.getElementById("pitchVal");
-    const volumeVal = document.getElementById("volumeVal");
-
-    // --- Load saved settings ---
-    function loadSettings() {
-      const saved = JSON.parse(localStorage.getItem("ttsSettings") || "{}");
-      rateRange.value = saved.rate ?? 0.95;
-      pitchRange.value = saved.pitch ?? 1.05;
-      volumeRange.value = saved.volume ?? 1.0;
-      soundCheckbox.checked = saved.sound ?? true;
-      updateSliderLabels();
-    }
-
-    function saveSettings() {
-      const payload = {
-        rate: parseFloat(rateRange.value),
-        pitch: parseFloat(pitchRange.value),
-        volume: parseFloat(volumeRange.value),
-        sound: soundCheckbox.checked,
-        voiceURI: voiceSelect.value || null
-      };
-      localStorage.setItem("ttsSettings", JSON.stringify(payload));
-    }
-
-    function updateSliderLabels() {
-      rateVal.textContent = rateRange.value;
-      pitchVal.textContent = pitchRange.value;
-      volumeVal.textContent = volumeRange.value;
-    }
-
-    [rateRange, pitchRange, volumeRange].forEach(el => {
-      el.addEventListener("input", () => { updateSliderLabels(); saveSettings(); });
-      el.addEventListener("change", saveSettings);
-    });
-    soundCheckbox.addEventListener("change", saveSettings);
-
-    // --- Voice Loading & Selection ---
-    function populateVoices() {
-      voices = window.speechSynthesis.getVoices() || [];
-      voiceSelect.innerHTML = "";
-
-      // Create options
-      voices.forEach(v => {
-        const opt = document.createElement("option");
-        opt.value = v.voiceURI;
-        opt.textContent = `${v.name} — ${v.lang}${v.default ? " (default)" : ""}`;
-        voiceSelect.appendChild(opt);
-      });
-
-      // Auto-pick: Prefer high-quality female voices if available
-      const pick = pickPreferredFemaleVoice(voices) || voices.find(v => v.default) || voices[0];
-      const saved = JSON.parse(localStorage.getItem("ttsSettings") || "{}");
-      const targetURI = saved.voiceURI || (pick && pick.voiceURI);
-
-      if (targetURI) {
-        const match = voices.find(v => v.voiceURI === targetURI);
-        if (match) voiceSelect.value = match.voiceURI;
+    function pickVoice() {
+      const vs = speechSynthesis.getVoices();
+      // Hard preference for JennyNeural
+      targetVoice = vs.find(v => v.name === "en-US-JennyNeural");
+      if (!targetVoice) {
+        // Fallback: any US English
+        targetVoice = vs.find(v => v.lang === "en-US") || vs.find(v => v.lang?.startsWith("en")) || vs.find(v => v.default) || null;
       }
-
-      setVoiceHint();
+    }
+    if (window.speechSynthesis) {
+      speechSynthesis.onvoiceschanged = pickVoice;
+      pickVoice();
     }
 
-    function pickPreferredFemaleVoice(list) {
-      // Prioritize vendors & female hints
-      const scored = list.map(v => {
-        let score = 0;
-        if (preferredVendors.some(vend => v.name.includes(vend))) score += 3;
-        if (femaleNameHints.some(h => v.name.includes(h))) score += 3;
-        if ((v.lang || "").toLowerCase().startsWith("en-")) score += 1;
-        return { v, score };
-      }).sort((a,b) => b.score - a.score);
-      return scored[0] && scored[0].score > 0 ? scored[0].v : null;
-    }
-
-    function setVoiceHint() {
-      const v = voices.find(v => v.voiceURI === voiceSelect.value);
-      if (!v) { voiceHint.textContent = ""; return; }
-      const isNeural = /Google|Microsoft|Neural|Siri/i.test(v.name);
-      voiceHint.textContent = `${isNeural ? "Likely neural / high-quality." : "Quality depends on OS voice."} (${v.name})`;
-    }
-
-    window.speechSynthesis.onvoiceschanged = () => {
-      populateVoices();
-    };
-
-    voiceSelect.addEventListener("change", () => {
-      setVoiceHint();
-      saveSettings();
-    });
-
-    // --- Speak helper ---
     function speak(text) {
       if (!soundCheckbox.checked || !text.trim()) return;
-      // Stop any ongoing speech first to avoid overlap
       window.speechSynthesis.cancel();
-
-      const utterance = new SpeechSynthesisUtterance(text);
-
-      // Settings
-      utterance.rate = parseFloat(rateRange.value) || 1.0;
-      utterance.pitch = parseFloat(pitchRange.value) || 1.0;
-      utterance.volume = parseFloat(volumeRange.value) || 1.0;
-
-      // Voice
-      const selected = voices.find(v => v.voiceURI === voiceSelect.value);
-      if (selected) {
-        utterance.voice = selected;
-        // Match language if provided
-        if (selected.lang) utterance.lang = selected.lang;
-      } else {
-        // Reasonable default for Canada
-        utterance.lang = "en-CA";
-      }
-
-      window.speechSynthesis.speak(utterance);
+      const u = new SpeechSynthesisUtterance(text);
+      if (targetVoice) u.voice = targetVoice;
+      u.rate = 0.98; u.pitch = 1.0; u.volume = 1.0;
+      window.speechSynthesis.speak(u);
     }
 
-    // --- Controls ---
     playBtn.addEventListener("click", function() {
       if (playing) return;
       playing = true;
@@ -354,16 +209,6 @@ leave to document: wound, dressing
       index++;
       setTimeout(playLines, 3000);
     }
-
-    // Initialize
-    loadSettings();
-    // In case voices are already loaded (some browsers)
-    populateVoices();
-
-    // Test voice button
-    testVoiceBtn.addEventListener("click", () => {
-      speak("This is a test of the selected voice.");
-    });
   </script>
 </body>
 </html>
